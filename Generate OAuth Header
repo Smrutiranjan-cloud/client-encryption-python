@@ -1,0 +1,76 @@
+import base64
+import hashlib
+import hmac
+import time
+import uuid
+import urllib.parse
+from OpenSSL import crypto
+
+# Replace with your actual details
+consumer_key = "aXqayIybNdwMnzGIZMAkQYSq(...)139a87746d5b00000000000000"
+private_key = "path_to_your_private_key.pem"  # Path to your private key (RSA)
+
+# HTTP Method and URL for the request
+http_method = "POST"  # Example: POST, GET, etc.
+url = "https://api.mastercard.com/your/api/endpoint"  # Replace with your actual URL
+
+# Example request body
+body = '{"example": "data"}'
+
+# Generate oauth_timestamp (current time in seconds)
+timestamp = str(int(time.time()))
+
+# Generate oauth_nonce (a unique string)
+nonce = str(uuid.uuid4())
+
+# Generate oauth_body_hash (Base64 encoded SHA256 hash of the request body)
+body_hash = base64.b64encode(hashlib.sha256(body.encode('utf-8')).digest()).decode('utf-8')
+
+# Prepare the OAuth parameters
+oauth_params = {
+    'oauth_consumer_key': consumer_key,
+    'oauth_nonce': nonce,
+    'oauth_signature_method': 'RSA-SHA256',
+    'oauth_timestamp': timestamp,
+    'oauth_version': '1.0',
+    'oauth_body_hash': body_hash
+}
+
+# Encode the parameters (URL encode each value)
+encoded_params = urllib.parse.urlencode(oauth_params, quote_via=urllib.parse.quote)
+
+# Create the base string for signing (concatenation of method, URL, and encoded parameters)
+base_string = "&".join([
+    http_method.upper(),
+    urllib.parse.quote(url, safe=''),
+    urllib.parse.quote(encoded_params, safe='')
+])
+
+# Now we need to sign the base string with your RSA private key
+# Load your private key (private key should be in .pem format)
+with open(private_key, 'r') as key_file:
+    private_key_data = key_file.read()
+
+# Load private key using OpenSSL
+private_key_obj = crypto.load_privatekey(crypto.FILETYPE_PEM, private_key_data)
+
+# Sign the base string using RSA-SHA256
+signature = crypto.sign(private_key_obj, base_string.encode('utf-8'), "sha256")
+
+# Base64 encode the signature
+encoded_signature = base64.b64encode(signature).decode('utf-8')
+
+# Prepare the Authorization header
+authorization_header = (
+    f'OAuth oauth_consumer_key="{consumer_key}", '
+    f'oauth_nonce="{nonce}", '
+    f'oauth_signature="{encoded_signature}", '
+    f'oauth_signature_method="RSA-SHA256", '
+    f'oauth_timestamp="{timestamp}", '
+    f'oauth_version="1.0", '
+    f'oauth_body_hash="{body_hash}"'
+)
+
+# Print the generated OAuth Authorization header
+print("Authorization Header:")
+print(authorization_header)
