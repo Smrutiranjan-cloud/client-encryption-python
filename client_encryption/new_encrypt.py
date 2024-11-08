@@ -89,3 +89,35 @@ encrypted_payload = FieldLevelEncryption.encrypt(payload, config)
 
 print("Encrypted Payload:", encrypted_payload)
 
+#########################
+########################
+from mastercard_encryption import FieldLevelEncryption, FieldLevelEncryptionConfig
+
+# Define the configuration dictionary
+config_dict = {
+    "encryptionPath": "$.credit_card.number",  # Path for data to be encrypted
+    "encryptedValueFieldPath": "$.encrypted_data.encryptedValue",  # Path for encrypted value
+    "encryptionCertificatePath": "path/to/your_public_certificate.pem",  # Path to the public key certificate
+    "encryptionKeyFingerprint": "your_encryption_key_fingerprint",  # Key fingerprint
+    "decryptionPath": "$.encrypted_data.encryptedValue",  # Path for encrypted data in the payload
+    "decryptionKeyPath": "path/to/your_private_key.pem",  # Path to the private key
+    "oaepPaddingDigestAlgorithm": "SHA-512"  # Padding digest algorithm
+}
+
+# Initialize FieldLevelEncryptionConfig with the configuration dictionary
+config = FieldLevelEncryptionConfig(conf=config_dict)
+
+# Sample payload to be encrypted
+payload = {
+    "credit_card": {
+        "number": "5555555555554444",
+        "expiry": "12/23",
+        "cvv": "123"
+    },
+    "other_data": "sample_value"
+}
+
+# Encrypt the payload
+encrypted_payload = FieldLevelEncryption.encrypt(payload, config)
+
+print("Encrypted Payload:", encrypted_payload)
