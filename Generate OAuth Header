@@ -74,3 +74,28 @@ authorization_header = (
 # Print the generated OAuth Authorization header
 print("Authorization Header:")
 print(authorization_header)
+
+
+
+####################################################
+####################################################
+import json
+import hashlib
+import base64
+
+# Step 1: Read JSON data from a file
+with open("data.json", "r") as file:
+    data = json.load(file)  # Load JSON data as a dictionary
+
+# Step 2: Convert the dictionary to a canonical JSON string with sorted keys
+canonical_string = json.dumps(data, sort_keys=True)
+
+# Step 3: Generate SHA-256 hash of the canonical string
+hash_digest = hashlib.sha256(canonical_string.encode('utf-8')).digest()
+
+# Step 4: Encode the hash in base64
+body_hash = base64.b64encode(hash_digest).decode('utf-8')
+
+# Output the body hash
+print("Body Hash:", body_hash)
+
