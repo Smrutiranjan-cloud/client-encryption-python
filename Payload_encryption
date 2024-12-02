@@ -49,3 +49,31 @@ output = {
 
 # Output the JSON
 print(json.dumps(output, indent=4))
+
+
+import requestsfrom mastercardoauth1signer 
+import OAuth1Signerfrom OpenSSL.crypto 
+import load_pkcs12# ConfigurationCONSUMER_KEY = "your_consumer_key" # Replace with your Mastercard consumer key
+P12_FILE_PATH = "path_to_your_private_key.p12" # Path to your .p12 file
+P12_PASSWORD = "your_p12_password" # Password for your .p12 file
+# Load the private key from the .p12 file
+with open(P12_FILE_PATH, "rb") as p12_file:
+    p12_data = p12_file.read()
+# Parse the .p12 file
+p12 = load_pkcs12(p12_data, P12_PASSWORD.encode())
+private_key = p12.get_privatekey().to_cryptography_key()
+
+# Initialize the OAuth1 signer
+signer = OAuth1Signer( 
+    consumer_key=CONSUMER_KEY,
+    private_key=private_key
+)# Define the API endpoint and payload
+url = "https://sandbox.api.mastercard.com/service/version/resource" # Replace with your API endpoint
+headers = {"Content-Type": "application/json"}
+# Create a signed requestauth_headers = signer.get_authorization_headers("POST", url, "application/json", "{}")
+headers.update(auth_headers)
+# Send the request
+response = requests.post(url, headers=headers, data="{}")
+# Print the response
+print(f"Status Code: {response.status_code}")
+print(f"Response Body: {response.text}")
